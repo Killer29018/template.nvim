@@ -61,11 +61,11 @@ function remove_template(prompt_bufnr)
     end
 end
 
+--[[
 local config = {
     finder = finders.new_table(vim.fn.TemplateList()),
     sorter = sorters.get_generic_fuzzy_sorter({}),
 
-    ---[[
     previewer = previewers.new_buffer_previewer {
         title = "Preview",
         define_preview = function (self, entry, status)
@@ -73,7 +73,6 @@ local config = {
             vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, table)
         end
     },
-    --]]
 
     attach_mappings = function(prompt_bufnr, map)
         map("i", "<CR>", use_template)
@@ -82,6 +81,7 @@ local config = {
         return true
     end,
 }
+--]]
 
 -- local window = pickers.new(opts)
 
@@ -91,7 +91,30 @@ local config = {
 local template = function(opts)
     opts = opts or {}
 
-    pickers.new(opts, config):find()
+    pickers.new(opts, {
+            prompt_title = "Templates",
+
+            finder = finders.new_table(vim.fn.TemplateList()),
+            sorter = sorters.get_generic_fuzzy_sorter({}),
+
+            previewer = previewers.new_buffer_previewer {
+                title = "Preview",
+                define_preview = function(self, entry, status)
+                    local table = vim.fn.TemplateFiles(entry[1])
+                    vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, table)
+                end
+            },
+
+            attach_mappings = function(prompt_bufnr, map)
+                map("i", "<CR>", use_template)
+                map("i", "<C-D>", remove_template)
+
+                map("n", "<CR>", use_template)
+                map("n", "<C-D>", remove_template)
+
+                return true
+            end
+        }):find()
 end
 
 return require'telescope'.register_extension {
