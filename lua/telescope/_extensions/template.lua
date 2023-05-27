@@ -11,7 +11,7 @@ local dropdown_theme = themes.get_dropdown()
 function use_template(prompt_bufnr)
     local selected = action_state.get_selected_entry()
 
-    vim.fn.TemplateUse(selected[1])
+    vim.fn.TemplateUse(selected.value)
 
     actions.close(prompt_bufnr)
 end
@@ -19,7 +19,7 @@ end
 function remove_template(prompt_bufnr)
     local selected = action_state.get_selected_entry()
 
-    output = vim.fn.TemplateRemove(selected[1])
+    output = vim.fn.TemplateRemove(selected.value)
 
     if output then
         actions.close(prompt_bufnr)

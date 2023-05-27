@@ -24,7 +24,6 @@ ignore = shutil.ignore_patterns(".git*")
 
 @pynvim.plugin
 class Template(object):
-
     def __init__(self, nvim):
         self.templates = []
         self.nvim = nvim
@@ -66,10 +65,10 @@ class Template(object):
             return
 
         name = args[0]
-        template, found = _get_template(name)
+        template, found = self._get_template(name)
 
         if not found:
-            nvim_write(self.nvim, f"Unable to use the template {template.name}")
+            nvim_write(self.nvim, f"Unable to use the template {name}")
             return
 
         nvim_write(self.nvim, f"Used the template {template.name}\n")
@@ -103,7 +102,7 @@ class Template(object):
             return False
 
         name = args[0]
-        template, found = _get_template(name)
+        template, found = self._get_template(name)
         if not found:
             return False
 
@@ -145,7 +144,7 @@ class Template(object):
 
             temp = re.findall("\.[A-Za-z]+", x.name)
 
-            if temp.length > 0:
+            if len(temp) > 0:
                 extension = temp[0][:1]
 
             icon = self.nvim.command_output(f"lua print(require'nvim-web-devicons'.get_icon('{x.name}', '{extension}'))")[0]
