@@ -141,7 +141,13 @@ class Template(object):
             output.append(f" {x.name}")
 
         for x in files:
-            extension = re.findall("\.[A-Za-z]+", x.name)[0][1:]
+            extension = ""
+
+            temp = re.findall("\.[A-Za-z]+", x.name)
+
+            if temp.length > 0:
+                extension = temp[0][:1]
+
             icon = self.nvim.command_output(f"lua print(require'nvim-web-devicons'.get_icon('{x.name}', '{extension}'))")[0]
 
             output.append(f"{icon} {x.name}")

@@ -8,20 +8,6 @@ local action_state = require "telescope.actions.state"
 local themes = require "telescope.themes"
 local dropdown_theme = themes.get_dropdown()
 
-
---[[
-local mini = {
-    layout_strategy = "vertical",
-    layout_config = {
-        height = 0.5,
-        width = 0.3,
-        prompt_position = "top"
-    },
-    
-    sorting_strategy = "ascending",
-}
---]]
-
 function use_template(prompt_bufnr)
     local selected = action_state.get_selected_entry()
 
@@ -39,33 +25,6 @@ function remove_template(prompt_bufnr)
         actions.close(prompt_bufnr)
     end
 end
-
---[[
-local config = {
-    finder = finders.new_table(vim.fn.TemplateList()),
-    sorter = sorters.get_generic_fuzzy_sorter({}),
-
-    previewer = previewers.new_buffer_previewer {
-        title = "Preview",
-        define_preview = function (self, entry, status)
-            local table = vim.fn.TemplateFiles(entry[1])
-            vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, table)
-        end
-    },
-
-    attach_mappings = function(prompt_bufnr, map)
-        map("i", "<CR>", use_template)
-        map("i", "<C-D>", remove_template)
-
-        return true
-    end,
-}
---]]
-
--- local window = pickers.new(opts)
-
--- window:find()
--- local template_picker = pickers.new(opts)
 
 local template = function(opts)
     opts = opts or {}
