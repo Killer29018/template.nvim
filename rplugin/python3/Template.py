@@ -1,4 +1,5 @@
-import os import shutil
+import os
+import shutil
 import re
 
 import pynvim
@@ -59,6 +60,10 @@ class Template(object):
         # args[0] : name
 
         cwd = self.nvim.command_output("pwd")
+        confirm = nvim_input(self.nvim, "Are you sure y/N: ")
+        if confirm.lower() != 'y':
+            nvim_write(self.nvim, "Cancelled")
+            return
 
         name = args[0]
         template, found = _get_template(name)
