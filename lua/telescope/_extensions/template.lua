@@ -108,7 +108,6 @@ local template = function(opts)
 end
 
 vim.fn.TemplateList()
-template()
 
 return require'telescope'.register_extension {
     setup = function(ext_config, config)
