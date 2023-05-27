@@ -1,5 +1,4 @@
-import os
-import shutil
+import os import shutil
 import re
 
 import pynvim
@@ -28,7 +27,7 @@ class Template(object):
     def __init__(self, nvim):
         self.templates = []
         self.nvim = nvim
-    
+
     def _load_templates(self):
         self.templates = []
 
@@ -43,39 +42,9 @@ class Template(object):
     def _get_template(self, name):
         for template in self.templates:
             if template.name == name:
-                return template
+                return template, True
 
-    """
-    @pynvim.function("TemplateCreate")
-    def create_template(self, args):
-        name = input("Please enter the name of the template: ")
-
-        shutil.copytree(cwd, filePath + "/" + name, dirs_exist_ok=True)
-        print("Created new Template")
-   
-    @pynvim.function("TemplateUse")
-    def use_template(self, args):
-        self._load_templates()
-        name = input("Please enter the name of the template: ")
-
-        for template in self.templates:
-            if template.name.lower() == name.lower():
-                shutil.copytree(template.path, cwd, dirs_exist_ok=True)
-
-    @pynvim.function("TemplateRemove")
-    def remove_template(self, args):
-        self._load_templates()
-
-        name = input("Please enter the name of the template you want to remove: ")
-
-        for x in self.templates:
-            if x.name == name:
-                shutil.rmtree(filePath + "/" + name)
-                print("Removed " + name)
-                return
-        else:
-            print("Template could not be found")
-    """
+        return None, False
 
     @pynvim.function("TemplateList", sync=True)
     def list_templates(self, args):
@@ -92,14 +61,14 @@ class Template(object):
         cwd = self.nvim.command_output("pwd")
 
         name = args[0]
-        for template in self.templates:
-            if template.name == name:
-                nvim_write(self.nvim, f"Used the template {template.name}\n")
-                shutil.copytree(template.path, cwd, dirs_exist_ok=True)
+        template, found = _get_template(name)
 
-                return
+        if not found:
+            nvim_write(self.nvim, f"Unable to use the template {template.name}")
+            return
 
-        nvim_write(self.nvim, f"Unable to use the template {template.name}")
+        nvim_write(self.nvim, f"Used the template {template.name}\n")
+        shutil.copytree(template.path, cwd, dirs_exist_ok=True)
 
     @pynvim.command("TemplateCreate", sync=True)
     def create_template(self):
@@ -129,23 +98,29 @@ class Template(object):
             return False
 
         name = args[0]
-        for template in self.templates:
-            if template.name == name:
-                shutil.rmtree(filePath + "/" + name)
-                nvim_write(self.nvim, f"Removed the template {template}\n")
-                return True
+        template, found = _get_template(name)
+        if not found:
+            return False
 
-        return False
+        shutil.rmtree(filePath + "/" + name)
+        nvim_write(self.nvim, f"Removed the template {template}\n")
+        return True
 
     @pynvim.function("TemplateFiles", sync=True)
     def template_files(self, args):
         # args[0] : name
 
-        template = self._get_template(args[0])
+        args[0]
+        template, found = self._get_template(args[0])
+        if not found:
+            return []
 
         output = []
 
         files = []
+
+        if template is None or template.path is None:
+            return []
 
         with os.scandir(template.path) as it:
             for file in it:

@@ -20,27 +20,6 @@ local mini = {
     
     sorting_strategy = "ascending",
 }
-
-function enter(prompt_bufnr)
-    local selected = action_state.get_selected_entry()
-    local cmd = 'colorscheme ' .. selected[1]
-    vim.cmd(cmd)
-    actions.close(prompt_bufnr)
-end
-
-
-local opts = {
-    finder = finders.new_table { "sonokai", "tokyonight", "blue" },
-    sorter = sorters.get_generic_fuzzy_sorter({}),
-
-    attach_mappings = function(prompt_bufnr, map)
-        map("i", "<CR>", enter)
-        return true
-    end,
-}
-local colours = pickers.new(dropdown_theme, opts)
-
-colours:find()
 --]]
 
 function use_template(prompt_bufnr)
@@ -94,13 +73,24 @@ local template = function(opts)
     pickers.new(opts, {
             prompt_title = "Templates",
 
-            finder = finders.new_table(vim.fn.TemplateList()),
+            finder = finders.new_table {
+                results = vim.fn.TemplateList(),
+
+                entry_maker = function(entry)
+                    return {
+                        value = entry,
+                        ordinal = entry,
+                        display = entry
+                    }
+                end
+            },
+            
             sorter = sorters.get_generic_fuzzy_sorter({}),
 
             previewer = previewers.new_buffer_previewer {
                 title = "Preview",
                 define_preview = function(self, entry, status)
-                    local table = vim.fn.TemplateFiles(entry[1])
+                    local table = vim.fn.TemplateFiles(entry.value)
                     vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, table)
                 end
             },
@@ -117,8 +107,12 @@ local template = function(opts)
         }):find()
 end
 
+vim.fn.TemplateList()
+template()
+
 return require'telescope'.register_extension {
     setup = function(ext_config, config)
+        vim.fn.TemplateList()
     end,
     exports = {
         template = template
