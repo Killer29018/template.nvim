@@ -74,9 +74,11 @@ class Template(object):
     def _set_tokens(self, path):
         tokens = self._get_tokens(path)
         
+        str = ""
         for key in tokens:
             tokens[key] = nvim_input(self.nvim, f"[REPLACE] {key}: ")
-            nvim.out_write(f"{key} : {tokens[key]}")
+            str += f"{key} : {tokens[key]}\n"
+            nvim_write(self.nvim, str)
 
         self.nvim.command("redraw | echo")
 
