@@ -5,7 +5,7 @@ import re
 import pynvim
 
 folderName = ".templates"
-filePath = os.path.abspath(os.getenv("HOME") + "/" + folderName)
+filePath = os.path.abspath(os.getenv("HOME") + "/" + folderName) + "/"
 # cwd = os.getcwd()
 
 templates = []
@@ -19,8 +19,6 @@ def nvim_write(nvim, msg):
 
 def nvim_input(nvim, msg):
     return nvim.eval(f'input("{msg}")')
-
-ignore = shutil.ignore_patterns(".git*")
 
 @pynvim.plugin
 class Template(object):
@@ -45,6 +43,74 @@ class Template(object):
                 return template, True
 
         return None, False
+
+    def _get_tokens(self, path):
+        files = []
+
+        queue = []
+        queue.append(path)
+
+        for path in queue:
+            with os.scandir(path) as it:
+                for file in it:
+                    if not file.is_dir():
+                        files.append(file)
+                    else:
+                        queue.append(file)
+
+        allMatches = []
+        for f in files:
+            with open(f.path, "r") as content:
+                lines = content.readlines()
+                allText = " ".join(lines)
+                temp = re.findall("\{#[A-Za-z0-9_]+\}", allText)
+                allMatches.extend(temp)
+
+        tokens = {}
+        tokens = dict.fromkeys(allMatches)
+
+        return tokens
+
+    def _set_tokens(self, path):
+        tokens = self._get_tokens(path)
+        
+        for key in tokens:
+            tokens[key] = nvim_input(self.nvim, f"[REPLACE] {key}: ")
+
+        files = []
+
+        queue = []
+        queue.append(path)
+
+        for path in queue:
+            with os.scandir(path) as it:
+                for file in it:
+                    if not file.is_dir():
+                        files.append(file)
+                    else:
+                        queue.append(file)
+
+        for f in files:
+            lines = []
+            newlines = []
+            with open(f.path, "r") as file:
+                lines = file.readlines()
+
+                for i, line in enumerate(lines):
+                    line = line.strip()
+                    matches = re.findall("\{#[A-Za-z0-9_]+\}", line)
+
+                    if len(matches) == 0:
+                        continue
+
+                    for match in matches:
+                        line = line.replace(match, tokens[match])
+
+                    lines[i] = line
+
+            string = "\n".join(lines)
+            with open(f.path, "w") as file:
+                file.write(string)
 
     @pynvim.function("TemplateList", sync=True)
     def list_templates(self, args):
@@ -74,13 +140,15 @@ class Template(object):
         nvim_write(self.nvim, f"Used the template {template.name}\n")
         shutil.copytree(template.path, cwd, dirs_exist_ok=True)
 
+        self._set_tokens(cwd)
+
     @pynvim.command("TemplateCreate", sync=True)
     def create_template(self):
         name = nvim_input(self.nvim, "Please enter the name of the template: ")
 
         cwd = self.nvim.command_output("pwd")
 
-        output = filePath + "/" + name
+        output = filePath + name
         if os.path.isdir(output):
             self.nvim.command("redraw | echo")
             overwrite = nvim_input(self.nvim, f"Template {name} already exists. Do you want to overwrite (y/N): ")
@@ -89,8 +157,13 @@ class Template(object):
                 nvim_write(self.nvim, "Cancelled\n")
                 return
 
-        shutil.copytree(cwd, filePath + "/" + name, dirs_exist_ok=True, ignore=ignore)
+        rules = [".git*", "__pycache__"]
+
+        ignore = shutil.ignore_patterns(*rules)
+
+        shutil.copytree(cwd, filePath + name, dirs_exist_ok=True, ignore=ignore)
         nvim_write(self.nvim, f"Created template {name}\n")
+
 
     @pynvim.function("TemplateRemove", sync=True)
     def remove_template(self, args):
@@ -106,7 +179,7 @@ class Template(object):
         if not found:
             return False
 
-        shutil.rmtree(filePath + "/" + name)
+        shutil.rmtree(filePath + name)
         nvim_write(self.nvim, f"Removed the template {template}\n")
         return True
 
@@ -152,4 +225,3 @@ class Template(object):
             output.append(f"{icon} {x.name}")
 
         return output
-
