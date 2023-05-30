@@ -76,6 +76,9 @@ class Template(object):
         
         for key in tokens:
             tokens[key] = nvim_input(self.nvim, f"[REPLACE] {key}: ")
+            nvim.out_write(f"{key} : {tokens[key]}")
+
+        self.nvim.command("redraw | echo")
 
         files = []
 
