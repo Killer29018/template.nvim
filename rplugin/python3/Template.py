@@ -162,7 +162,7 @@ class Template(object):
                 nvim_write(self.nvim, "Cancelled\n")
                 return
 
-        rules = [".git*", "__pycache__"]
+        rules = [".git*", "__pycache__", "bin*", "build*"]
 
         ignore = shutil.ignore_patterns(*rules)
 
