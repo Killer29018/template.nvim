@@ -61,6 +61,7 @@ class Template(object):
         allMatches = []
         for f in files:
             with open(f.path, "r") as content:
+                nvim_write(self.nvim, f"{f.name}")
                 lines = content.readlines()
                 allText = " ".join(lines)
                 temp = re.findall("\{#[A-Za-z0-9_]+\}", allText)
@@ -102,7 +103,6 @@ class Template(object):
                 lines = file.readlines()
 
                 for i, line in enumerate(lines):
-                    line = line.strip()
                     matches = re.findall("\{#[A-Za-z0-9_]+\}", line)
 
                     if len(matches) == 0:
@@ -113,7 +113,7 @@ class Template(object):
 
                     lines[i] = line
 
-            string = "\n".join(lines)
+            string = "".join(lines)
             with open(f.path, "w") as file:
                 file.write(string)
 
