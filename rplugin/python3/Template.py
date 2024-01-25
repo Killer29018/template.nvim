@@ -8,6 +8,8 @@ folderName = ".templates"
 filePath = os.path.abspath(os.getenv("HOME") + "/" + folderName) + "/"
 # cwd = os.getcwd()
 
+ignore_rules = [".git*", "__pycache__", "bin*", "build*", ".cache*"]
+
 templates = []
 
 def nvim_clear(nvim):
@@ -162,9 +164,8 @@ class Template(object):
                 nvim_write(self.nvim, "Cancelled\n")
                 return
 
-        rules = [".git*", "__pycache__", "bin*", "build*"]
 
-        ignore = shutil.ignore_patterns(*rules)
+        ignore = shutil.ignore_patterns(*ignore_rules)
 
         shutil.copytree(cwd, filePath + name, dirs_exist_ok=True, ignore=ignore)
         nvim_write(self.nvim, f"Created template {name}\n")
